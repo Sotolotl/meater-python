@@ -50,6 +50,7 @@ devices = api.get_all_devices()
 ```
 
 This will populate the `devices` variable with a list of all the available device objects.
+
 **NOTE**: Only devices that are actively connected to Meater Cloud are available through the API. Once a probe has been disconnected for a few minutes, it is no longer returned by the API.
 
 A specific device can be queried by the API like so:
@@ -59,6 +60,7 @@ device = api.get_device('<your device ID>')
 ```
 
 The device ID should be a 65 character long alphanumeric string. To obtain the device ID, make a call to `api.get_all_devices` while the device is connected.
+
 **NOTE**: This method will throw an exception if the device cannot be found. This includes if the device is currently offline.
 
 ### MeaterProbe Object Attributes
