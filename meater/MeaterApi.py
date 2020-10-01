@@ -1,15 +1,15 @@
-import requests
 import json
 from datetime import datetime
 
 class MeaterApi(object):
 	"""Meater api object"""
-	def __init__(self):
+	def __init__(self, aiohttp_session):
 		self._jwt = None
+		self._session = aiohttp_session
 	
-	def get_all_devices(self):
+	async def get_all_devices(self):
 		"""Get all the device states."""
-		device_states = self.__get_raw_state_all()
+		device_states = await self.__get_raw_state_all()
 
 		devices = []
 
@@ -18,68 +18,68 @@ class MeaterApi(object):
 
 		return devices
 
-	def get_device(self, device_id):
-		device_state = self.__get_raw_state(device_id)
+	async def get_device(self, device_id):
+		device_state = await self.__get_raw_state(device_id)
 		return self.__get_probe_object(device_state)
 
-	def __get_raw_state_all(self):
+	async def __get_raw_state_all(self):
 		"""Get raw device state from the Meater API. We have to have authenticated before now."""
 		if not self._jwt:
 			raise Exception('You need to authenticate before making requests to the API.')
 
 		headers = {'Authorization': 'Bearer ' + self._jwt}
 
-		device_state_request = requests.get('https://public-api.cloud.meater.com/v1/devices', headers=headers)
-		if device_state_request.status_code != 200:
-			raise Exception('Error connecting to Meater')
+		async with self._session.get('https://public-api.cloud.meater.com/v1/devices', headers=headers) as device_state_request:
+			if device_state_request.status != 200:
+				raise Exception('Error connecting to Meater')
 
-		device_state_body = device_state_request.json()
-		if len(device_state_body) == 0:
-			raise Exception('The server did not return a valid response')
+			device_state_body = await device_state_request.json()
+			if len(device_state_body) == 0:
+				raise Exception('The server did not return a valid response')
 
-		return device_state_body.get('data').get('devices')
+			return device_state_body.get('data').get('devices')
 		
-	def __get_raw_state(self, device_id):
+	async def __get_raw_state(self, device_id):
 		"""Get raw device state from the Meater API. We have to have authenticated before now."""
 		if not self._jwt:
 			raise Exception('You need to authenticate before making requests to the API.')
 
 		headers = {'Authorization': 'Bearer ' + self._jwt}
 
-		device_state_request = requests.get('https://public-api.cloud.meater.com/v1/devices/' + device_id, headers=headers)
+		async with self._session.get('https://public-api.cloud.meater.com/v1/devices/' + device_id, headers=headers) as device_state_request:
+			if device_state_request.status == 404:
+				raise Exception('The specified device could not be found, it might not be connected to Meater Cloud')
 
-		if device_state_request.status_code == 404:
-			raise Exception('The specified device could not be found, it might not be connected to Meater Cloud')
+			if device_state_request.status != 200:
+				raise Exception('Error connecting to Meater')
 
-		if device_state_request.status_code != 200:
-			raise Exception('Error connecting to Meater')
+			device_state_body = await device_state_request.json()
+			if len(device_state_body) == 0:
+				raise Exception('The server did not return a valid response')
 
-		device_state_body = device_state_request.json()
-		if len(device_state_body) == 0:
-			raise Exception('The server did not return a valid response')
+			return device_state_body.get('data')
 
-		return device_state_body.get('data')
-
-	def authenticate(self, email, password):
+	async def authenticate(self, email, password):
 		"""Authenticate with Meater."""
 		
 		headers = {'Content-Type':'application/json'}
 		body = {'email':email, 'password':password}
 
-		meater_auth_req = requests.post('https://public-api.cloud.meater.com/v1/login', data = json.dumps(body), headers=headers)
+		async with self._session.post('https://public-api.cloud.meater.com/v1/login', data = json.dumps(body), headers=headers) as meater_auth_req:
+			if meater_auth_req.status != 200:
+				raise Exception('Couldn\'t authenticate with the Meater API')
 
-		if meater_auth_req.status_code != 200:
-			raise Exception('Couldn\'t authenticate with the Meater API')
+			auth_body = await meater_auth_req.json()
+			
+			jwt = auth_body.get('data').get('token') # The JWT is valid indefinitely...
 
-		jwt = meater_auth_req.json().get('data').get('token') # The JWT is valid indefinitely...
+			if not jwt:
+				raise Exception('Could not authenticate with Meater')
 
-		if not jwt:
-			raise Exception('Could not authenticate with Meater')
+			# Set JWT local variable
+			self._jwt = jwt
 
-		# Set JWT local variable
-		self._jwt = jwt
-
-		return True
+			return True
 
 	def __get_probe_object(self, device):
 		cook = None
