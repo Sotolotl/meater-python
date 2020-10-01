@@ -26,19 +26,27 @@ import meater
 
 ## Usage
 
+All calls to this class are flagged with async, and are awaitable.
+
 To get started, first import the `MeaterApi` class from `meater`.
 
 ### Initializing
 
 ```python
+import aiohttp
 from meater import MeaterApi
-api = MeaterApi()
+
+session = aiohttp.ClientSession()
+
+api = MeaterApi(session)
 ```
 
-The code above initializes the cooker into the `api` variable. Before any information can be obtained, you need to authenticate with the api. In the current version of `meater-python`, only email/password authentication is supported. You can authenticate with the API like so:
+The code above initializes the cooker into the `api` variable. The api required an aiohttp session be passed to it. One session should be created for the whole application to use, as per the aiohttp best practices.
+
+Before any information can be obtained, you need to authenticate with the api. In the current version of `meater-python`, only email/password authentication is supported. You can authenticate with the API like so:
 
 ```python
-api.authenticate('<your email address>','<your password>')
+await api.authenticate('<your email address>','<your password>')
 ```
 
 ### Getting Probe States
@@ -46,7 +54,7 @@ api.authenticate('<your email address>','<your password>')
 Once you have authentiated with the API, you can get information about all available probes like so:
 
 ```python
-devices = api.get_all_devices()
+devices = await api.get_all_devices()
 ```
 
 This will populate the `devices` variable with a list of all the available device objects.
@@ -56,7 +64,7 @@ This will populate the `devices` variable with a list of all the available devic
 A specific device can be queried by the API like so:
 
 ```python
-device = api.get_device('<your device ID>')
+device = await api.get_device('<your device ID>')
 ```
 
 The device ID should be a 65 character long alphanumeric string. To obtain the device ID, make a call to `api.get_all_devices` while the device is connected.
