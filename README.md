@@ -41,7 +41,7 @@ session = aiohttp.ClientSession()
 api = MeaterApi(session)
 ```
 
-The code above initializes the cooker into the `api` variable. The api required an aiohttp session be passed to it. One session should be created for the whole application to use, as per the aiohttp best practices.
+The code above initializes the cooker into the `api` variable. The api requires an aiohttp session be passed to it. One session should be created for the whole application to use, as per the aiohttp best practices.
 
 Before any information can be obtained, you need to authenticate with the api. In the current version of `meater-python`, only email/password authentication is supported. You can authenticate with the API like so:
 
