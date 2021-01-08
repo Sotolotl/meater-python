@@ -106,7 +106,11 @@ class MeaterCook(object):
         self.id = id
         self.name = name
         self.state = state
-        self.target_temperature = float(target_temp) # Always in degrees celcius
-        self.peak_temperature = float(peak_temp) # Always in degrees celcius
-        self.time_remaining = int(time_remaining) # Always in seconds
-        self.time_elapsed = int(time_elapsed) # Always in seconds
+        if target_temp:
+            self.target_temperature = float(target_temp) # Always in degrees celcius
+        if peak_temp:
+            self.peak_temperature = float(peak_temp) # Always in degrees celcius
+        if time_remaining:
+            self.time_remaining = int(time_remaining) # Always in seconds
+        if time_elapsed:
+            self.time_elapsed = int(time_elapsed) # Always in seconds
