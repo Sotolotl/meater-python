@@ -87,7 +87,7 @@ class MeaterApi(object):
 		if device.get('cook'):
 			target_temp = 0
 
-			cook = MeaterCook(device.get('cook').get('id'), device.get('cook').get('name'), device.get('cook').get('state'), device.get('cook').get('temperature').get('target'), device.get('cook').get('peak'), device.get('cook').get('time').get('remaining'), device.get('cook').get('time').get('elapsed'))
+			cook = MeaterCook(device.get('cook').get('id'), device.get('cook').get('name'), device.get('cook').get('state'), device.get('cook').get('temperature').get('target'), device.get('cook').get('temperature').get('peak'), device.get('cook').get('time').get('remaining'), device.get('cook').get('time').get('elapsed'))
 
 		probe = MeaterProbe(device.get('id'), device.get('temperature').get('internal'), device.get('temperature').get('ambient'), cook, device.get('updated_at'))
 
