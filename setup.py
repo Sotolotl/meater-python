@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="meater-python",
-    version="0.0.5",
+    version="0.0.6",
     author="Billy Stevenson",
     author_email="meater-api@billystevenson.co.uk",
     description="A wrapper for the Apption Labs Meater probe API v1",

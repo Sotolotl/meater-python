@@ -25,11 +25,20 @@ class MeaterApi(object):
 	async def __get_raw_state_all(self):
 		"""Get raw device state from the Meater API. We have to have authenticated before now."""
 		if not self._jwt:
-			raise Exception('You need to authenticate before making requests to the API.')
+			raise AuthenticationError('You need to authenticate before making requests to the API.')
 
 		headers = {'Authorization': 'Bearer ' + self._jwt}
 
 		async with self._session.get('https://public-api.cloud.meater.com/v1/devices', headers=headers) as device_state_request:
+			if device_state_request.status == 401:
+				raise AuthenticationError('Unable to authenticate with the Meater API')
+
+			if device_state_request.status == 500:
+				raise ServiceUnavailableError('The service is currently unavailable')
+
+			if device_state_request.status == 429:
+				raise TooManyRequestsError('Too many requests have been made to the API')
+
 			if device_state_request.status != 200:
 				raise Exception('Error connecting to Meater')
 
@@ -42,13 +51,22 @@ class MeaterApi(object):
 	async def __get_raw_state(self, device_id):
 		"""Get raw device state from the Meater API. We have to have authenticated before now."""
 		if not self._jwt:
-			raise Exception('You need to authenticate before making requests to the API.')
+			raise AuthenticationError('You need to authenticate before making requests to the API.')
 
 		headers = {'Authorization': 'Bearer ' + self._jwt}
 
 		async with self._session.get('https://public-api.cloud.meater.com/v1/devices/' + device_id, headers=headers) as device_state_request:
 			if device_state_request.status == 404:
-				raise Exception('The specified device could not be found, it might not be connected to Meater Cloud')
+				raise UnknownDeviceError('The specified device could not be found, it might not be connected to Meater Cloud')
+
+			if device_state_request.status == 401:
+				raise AuthenticationError('Unable to authenticate with the Meater API')
+
+			if device_state_request.status == 500:
+				raise ServiceUnavailableError('The service is currently unavailable')
+
+			if device_state_request.status == 429:
+				raise TooManyRequestsError('Too many requests have been made to the API')
 
 			if device_state_request.status != 200:
 				raise Exception('Error connecting to Meater')
@@ -66,6 +84,15 @@ class MeaterApi(object):
 		body = {'email':email, 'password':password}
 
 		async with self._session.post('https://public-api.cloud.meater.com/v1/login', data = json.dumps(body), headers=headers) as meater_auth_req:
+			if meater_auth_req.status == 401:
+				raise AuthenticationError('The specified credientals were incorrect')
+
+			if meater_auth_req.status == 500:
+				raise ServiceUnavailableError('The service is currently unavailable')
+
+			if meater_auth_req.status == 429:
+				raise TooManyRequestsError('Too many requests have been made to the API')
+
 			if meater_auth_req.status != 200:
 				raise Exception('Couldn\'t authenticate with the Meater API')
 
@@ -74,7 +101,7 @@ class MeaterApi(object):
 			jwt = auth_body.get('data').get('token') # The JWT is valid indefinitely...
 
 			if not jwt:
-				raise Exception('Could not authenticate with Meater')
+				raise AuthenticationError('Unable to obtain an auth token from the Meater API')
 
 			# Set JWT local variable
 			self._jwt = jwt
@@ -114,3 +141,15 @@ class MeaterCook(object):
             self.time_remaining = int(time_remaining) # Always in seconds
         if time_elapsed:
             self.time_elapsed = int(time_elapsed) # Always in seconds
+
+class UnknownDeviceError(Exception):
+	pass
+
+class AuthenticationError(Exception):
+	pass
+
+class ServiceUnavailableError(Exception):
+	pass
+
+class TooManyRequestsError(Exception):
+	pass
