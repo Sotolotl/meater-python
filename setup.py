@@ -11,7 +11,7 @@ setuptools.setup(
     description="A wrapper for the Apption Labs Meater probe API v1",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://https://github.com/Sotolotl/meater-python",
+    url="https://github.com/Sotolotl/meater-python",
     packages=setuptools.find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
